@@ -12,6 +12,7 @@ export const FOUNDER_PROFILE = {
   website: 'southernwellofsouthms.com',
   websiteUrl: 'https://southernwellofsouthms.com',
   offlineDossierPath: '/assets/aistudio/Care_Dossier___Digital_17f52061.html',
+  masterWorkbookPath: '/assets/aistudio/Southernwell_Master_Database_Workbook_f81ce84f',
 } as const;
 
 export const GENERATED_IMAGES = {

@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { Camera, CameraOff, Check, Copy, RefreshCw } from 'lucide-react';
-import { generateSixDigitPin, type ConsultationQrPayload } from '../lib/qrPinUtils';
+import { generatePin, type ConsultationQrPayload } from '../lib/qrPinUtils';
 
 interface LiveQrPinScannerProps {
   onPinGenerated?: (data: { clientId: string; pin: string }) => void | Promise<void>;
@@ -89,7 +89,7 @@ export function LiveQrPinScanner({
             }
 
             hasScannedRef.current = true;
-            const pin = generateSixDigitPin();
+            const pin = generatePin(6);
 
             setActiveClientId(parsed.clientId);
             setGeneratedPin(pin);

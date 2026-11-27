@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import QRCode from 'qrcode';
 import {
   ArrowRight,
@@ -6,7 +6,9 @@ import {
   Check,
   Copy,
   Download,
+  ExternalLink,
   FileDown,
+  FileSpreadsheet,
   FileText,
   KeyRound,
   Phone,
@@ -25,10 +27,10 @@ import {
   type OpsDataState,
 } from '../../data/opsData';
 import {
-  generateSixDigitPin,
   type AccessPassRecord,
   type ProtectedArea,
 } from '../../lib/accessPasses';
+import { generatePin } from '../../lib/qrPinUtils';
 import { LiveQrPinScanner } from '../LiveQrPinScanner';
 import { QrPinGenerator } from '../QrPinGenerator';
 import { SignedAgreementQrPass } from '../SignedAgreementQrPass';
@@ -86,7 +88,7 @@ export function FormsView({
   const [pinIntakeMode, setPinIntakeMode] = useState<'paste' | 'camera'>('paste');
 
   function handleGeneratePin() {
-    const nextPin = generateSixDigitPin();
+    const nextPin = generatePin(6);
     setPassPin(nextPin);
     if (passError) setPassError('');
   }
@@ -851,7 +853,69 @@ interface BooksViewProps {
   onOpenFamilies: () => void;
 }
 
+function parseCsvRows(raw: string): string[][] {
+  return raw
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const cells: string[] = [];
+      let current = '';
+      let inQuotes = false;
+      for (let i = 0; i < line.length; i += 1) {
+        const ch = line[i];
+        if (ch === '"') {
+          if (inQuotes && line[i + 1] === '"') {
+            current += '"';
+            i += 1;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (ch === ',' && !inQuotes) {
+          cells.push(current.trim());
+          current = '';
+        } else {
+          current += ch;
+        }
+      }
+      cells.push(current.trim());
+      return cells;
+    });
+}
+
 export function BooksView({ onOpenDossier, onOpenFamilies }: BooksViewProps) {
+  const [workbookRows, setWorkbookRows] = useState<string[][]>([]);
+  const [showWorkbookPreview, setShowWorkbookPreview] = useState(false);
+  const [workbookError, setWorkbookError] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(FOUNDER_PROFILE.masterWorkbookPath)
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Unable to load workbook (${res.status})`);
+        }
+        return res.text();
+      })
+      .then((text) => {
+        if (!cancelled) {
+          setWorkbookRows(parseCsvRows(text));
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setWorkbookError(err instanceof Error ? err.message : 'Unable to preview workbook.');
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const workbookHeaders = workbookRows[0] ?? [];
+  const workbookDataRows = workbookRows.slice(1);
+
   return (
     <div className="space-y-6">
       <div className="bg-surface-container-low rounded p-5 border border-brass/30">
@@ -863,7 +927,7 @@ export function BooksView({ onOpenDossier, onOpenFamilies }: BooksViewProps) {
         </h2>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <article className="bg-primary-container text-on-primary rounded p-6 border border-brass/40 flex flex-col justify-between gap-4">
           <div className="space-y-2">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-secondary-fixed">
@@ -937,7 +1001,111 @@ export function BooksView({ onOpenDossier, onOpenFamilies }: BooksViewProps) {
             </button>
           </div>
         </article>
+
+        <article className="bg-surface-container-lowest rounded p-6 border border-brass/35 flex flex-col justify-between gap-4">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-secondary">
+                Master Database Workbook (CSV)
+              </span>
+              {workbookDataRows.length > 0 && (
+                <span className="text-[11px] font-semibold text-sage tabular-nums">
+                  {workbookDataRows.length} response{workbookDataRows.length === 1 ? '' : 's'}
+                </span>
+              )}
+            </div>
+            <h3 className="font-editorial text-2xl font-medium text-primary-container">
+              Southernwell Master Database Workbook
+            </h3>
+            <p className="text-xs text-on-surface-variant leading-relaxed">
+              Linked check-in and master intake workbook export. Open the raw file, download as CSV, or preview records below.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <a
+              href={FOUNDER_PROFILE.masterWorkbookPath}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 min-h-[42px] px-3 py-2 rounded bg-primary-container text-secondary-fixed text-xs font-semibold uppercase tracking-wider inline-flex items-center justify-center gap-1.5 hover:bg-tertiary-container"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              <span>Open Link</span>
+            </a>
+            <a
+              href={FOUNDER_PROFILE.masterWorkbookPath}
+              download="Southernwell_Master_Database_Workbook.csv"
+              className="min-h-[42px] px-3 py-2 rounded bg-surface-container-low border border-brass/35 text-primary-container text-xs font-semibold uppercase tracking-wider inline-flex items-center justify-center gap-1.5 hover:bg-surface-container"
+            >
+              <FileDown className="w-4 h-4 text-secondary" />
+              <span>CSV</span>
+            </a>
+            <button
+              type="button"
+              onClick={() => setShowWorkbookPreview((prev) => !prev)}
+              className="min-h-[42px] px-3 py-2 rounded bg-surface-container-low border border-outline-variant text-xs font-semibold text-primary-container inline-flex items-center gap-1.5 hover:bg-surface-container"
+            >
+              <FileSpreadsheet className="w-4 h-4 text-secondary" />
+              <span>{showWorkbookPreview ? 'Hide Table' : 'Preview'}</span>
+            </button>
+          </div>
+        </article>
       </div>
+
+      {showWorkbookPreview && (
+        <div className="bg-surface-container-lowest rounded p-5 border border-brass/30 space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-secondary">
+                Linked Workbook Preview
+              </p>
+              <h3 className="font-editorial text-lg font-semibold text-primary-container">
+                Southernwell Master Database Workbook
+              </h3>
+            </div>
+            <a
+              href={FOUNDER_PROFILE.masterWorkbookPath}
+              download="Southernwell_Master_Database_Workbook.csv"
+              className="text-xs font-semibold text-secondary hover:underline inline-flex items-center gap-1"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Download CSV</span>
+            </a>
+          </div>
+
+          {workbookError ? (
+            <p className="text-xs text-red-800 bg-red-50 border border-red-200 rounded p-3">
+              {workbookError}
+            </p>
+          ) : workbookRows.length === 0 ? (
+            <p className="text-xs text-on-surface-variant">No rows found in workbook.</p>
+          ) : (
+            <div className="overflow-x-auto border border-brass/20 rounded">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="bg-surface-container-low border-b border-brass/25 text-primary-container">
+                    {workbookHeaders.map((header, idx) => (
+                      <th key={`${header}-${idx}`} className="px-3.5 py-2.5 font-semibold">
+                        {header}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-brass/15">
+                  {workbookDataRows.map((row, rIdx) => (
+                    <tr key={rIdx} className="hover:bg-surface-container-low/60">
+                      {workbookHeaders.map((_, cIdx) => (
+                        <td key={cIdx} className="px-3.5 py-2.5 text-on-surface-variant tabular-nums">
+                          {row[cIdx] ?? '—'}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -46,12 +46,16 @@ export interface ConsultationQrPayload {
   issuedAt: string;
 }
 
+/** Generates a numeric PIN of the requested length using cryptographic randomness */
+export function generatePin(length = 6): string {
+  const array = new Uint32Array(length);
+  crypto.getRandomValues(array);
+  return Array.from(array, (n) => (n % 10).toString()).join('');
+}
+
 /** Generates a 6-digit numeric PIN using cryptographic randomness */
 export function generateSixDigitPin(): string {
-  const array = new Uint32Array(1);
-  crypto.getRandomValues(array);
-  const pin = (array[0] % 900000) + 100000; // guarantees 100000–999999
-  return String(pin);
+  return generatePin(6);
 }
 
 /** Builds a QR string payload after Agreement of Services is signed */

@@ -1,6 +1,6 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
 import { Check, Copy, QrCode, ShieldCheck, Upload } from 'lucide-react';
-import { generateSixDigitPin, type ConsultationQrPayload } from '../lib/qrPinUtils';
+import { generatePin, type ConsultationQrPayload } from '../lib/qrPinUtils';
 
 interface QrPinGeneratorProps {
   onPinGenerated?: (data: { clientId: string; pin: string }) => void | Promise<void>;
@@ -51,7 +51,7 @@ export function QrPinGenerator({
       return;
     }
 
-    const pin = generateSixDigitPin();
+    const pin = generatePin(6);
     setActiveClientId(parsed.clientId);
     setGeneratedPin(pin);
 

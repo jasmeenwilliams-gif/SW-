@@ -1,0 +1,453 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Authenticated user profile for Southern Well Senior Concierge clients, family caregivers, and practice administrator.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Firebase Auth UID matching the document ID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "User display name.",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Verified account email address.",
+          "minLength": 3,
+          "maxLength": 180
+        },
+        "role": {
+          "type": "string",
+          "enum": ["client", "admin"],
+          "description": "Access role assigned to the account."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when profile was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of latest profile update."
+        }
+      },
+      "required": ["uid", "displayName", "email", "role", "createdAt", "updatedAt"]
+    },
+    "CareDossierRecord": {
+      "title": "CareDossierRecord",
+      "description": "13-section Digital Care Dossier stored natively for a signed-in client or authorized family steward.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "description": "Owner Firebase Auth UID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "title": {
+          "type": "string",
+          "description": "Dossier title.",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "fields": {
+          "type": "object",
+          "description": "Key-value map of single-line and multi-line dossier text fields."
+        },
+        "tables": {
+          "type": "object",
+          "description": "Map of table keys (circle, legal, meds, prov, goals, res, log) to arrays of row objects."
+        },
+        "completionPercent": {
+          "type": "number",
+          "description": "Calculated dossier completion percentage (0-100)."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": ["ownerId", "title", "fields", "tables", "completionPercent", "createdAt", "updatedAt"]
+    },
+    "LaunchKitRecord": {
+      "title": "LaunchKitRecord",
+      "description": "Family preparation checklist, pre-visit clinic question list, and quick-reference Care Card.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "description": "Owner Firebase Auth UID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "checkedIds": {
+          "type": "array",
+          "description": "Completed readiness checklist item IDs."
+        },
+        "questions": {
+          "type": "array",
+          "description": "Pre-visit clinic questions prepared by specialty."
+        },
+        "dossierCard": {
+          "type": "object",
+          "description": "Quick-reference Care Card summary map."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": ["ownerId", "checkedIds", "questions", "dossierCard", "createdAt", "updatedAt"]
+    },
+    "ConsultationRequest": {
+      "title": "ConsultationRequest",
+      "description": "Confidential family consultation inquiry submitted through Southern Well intake.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "description": "Submitting user Firebase Auth UID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "referenceCode": {
+          "type": "string",
+          "description": "Human-readable inquiry reference code (e.g., SW-4821).",
+          "minLength": 4,
+          "maxLength": 24,
+          "pattern": "^SW-[0-9]{4,8}$"
+        },
+        "contactName": {
+          "type": "string",
+          "description": "Family contact full name.",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "contactEmailOrPhone": {
+          "type": "string",
+          "description": "Preferred reply phone number or email address.",
+          "minLength": 3,
+          "maxLength": 160
+        },
+        "lovedOneCity": {
+          "type": "string",
+          "description": "Loved one city in South Mississippi.",
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "serviceInterest": {
+          "type": "string",
+          "enum": [
+            "foundation-assessment",
+            "medication-concierge",
+            "clinic-accompaniment",
+            "advance-care-planning",
+            "general-consultation"
+          ],
+          "description": "Requested concierge protocol."
+        },
+        "preferredFormat": {
+          "type": "string",
+          "enum": ["Phone Call", "Video Family Meeting", "In-Home Visit"],
+          "description": "Preferred consultation format."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional family context notes.",
+          "maxLength": 2000
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "scheduled", "completed", "archived"],
+          "description": "Consultation triage lifecycle status."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of inquiry submission."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of latest update."
+        }
+      },
+      "required": [
+        "ownerId",
+        "referenceCode",
+        "contactName",
+        "contactEmailOrPhone",
+        "lovedOneCity",
+        "serviceInterest",
+        "preferredFormat",
+        "notes",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "PracticeOpsHub": {
+      "title": "PracticeOpsHub",
+      "description": "Practice-wide administrative operations hub state for Southern Well Senior Concierge (client initials, check-ins, action plans, referrals, payments, medication logs, MMAS/BHLS scores, and launch readiness).",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "description": "Admin Firebase Auth UID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "preset": {
+          "type": "string",
+          "enum": ["strict", "standard", "high"],
+          "description": "Alert sensitivity preset."
+        },
+        "clients": {
+          "type": "array",
+          "description": "Bounded caseload client records (initials and non-clinical milestones)."
+        },
+        "checkins": {
+          "type": "array",
+          "description": "Scheduled and completed client check-ins."
+        },
+        "actions": {
+          "type": "array",
+          "description": "Care coordination action plans."
+        },
+        "referrals": {
+          "type": "array",
+          "description": "External LCSW, provider, pharmacy, and elder law referrals."
+        },
+        "payments": {
+          "type": "array",
+          "description": "Retainer and invoice payment tracking entries."
+        },
+        "meds": {
+          "type": "array",
+          "description": "Medication refill and bottle inventory tracker records."
+        },
+        "mmasResponses": {
+          "type": "object",
+          "description": "MMAS-8 routine check-in response map (q1-q8)."
+        },
+        "bhlsResponses": {
+          "type": "object",
+          "description": "BHLS health literacy screening response map (q1-q3)."
+        },
+        "launchDone": {
+          "type": "object",
+          "description": "Launch readiness checklist completion map."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": [
+        "ownerId",
+        "preset",
+        "clients",
+        "checkins",
+        "actions",
+        "referrals",
+        "payments",
+        "meds",
+        "mmasResponses",
+        "bhlsResponses",
+        "launchDone",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ClientCheckIn": {
+      "title": "ClientCheckIn",
+      "description": "Individual client check-in record stored in the top-level checkins collection with owner and practice admin access.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "description": "Creator Firebase Auth UID.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "clientId": {
+          "type": "string",
+          "description": "Client reference ID (e.g., SW-RM-4081).",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "date": {
+          "type": "string",
+          "description": "Scheduled check-in date (YYYY-MM-DD).",
+          "minLength": 8,
+          "maxLength": 20
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "Phone",
+            "Home visit",
+            "Pill tray review",
+            "Self-advocacy check-in",
+            "Appointment Accompaniment"
+          ],
+          "description": "Check-in modality."
+        },
+        "note": {
+          "type": "string",
+          "description": "Non-clinical check-in focus note.",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "done": {
+          "type": "boolean",
+          "description": "Completion flag."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": [
+        "ownerId",
+        "clientId",
+        "date",
+        "type",
+        "note",
+        "done",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "AccessPass": {
+      "title": "AccessPass",
+      "description": "Hashed portal access token issued by practice administration for post-consultation family portals or operations access.",
+      "type": "object",
+      "properties": {
+        "passHash": {
+          "type": "string",
+          "description": "SHA-256 hex digest of salted PIN matching document ID.",
+          "minLength": 64,
+          "maxLength": 64,
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "area": {
+          "type": "string",
+          "enum": ["family_suite", "operations"],
+          "description": "Protected application area."
+        },
+        "label": {
+          "type": "string",
+          "description": "Non-PII access label (e.g., Client Portal Pass).",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "agreementSigned": {
+          "type": "boolean",
+          "description": "Whether the Agreement of Services has been executed."
+        },
+        "active": {
+          "type": "boolean",
+          "description": "Whether the pass is currently active."
+        },
+        "createdBy": {
+          "type": "string",
+          "description": "Admin UID who issued the pass.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": [
+        "passHash",
+        "area",
+        "label",
+        "agreementSigned",
+        "active",
+        "createdBy",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Private user account metadata partitioned by UID."
+    },
+    "/users/{userId}/dossiers/{dossierId}": {
+      "schema": { "$ref": "#/entities/CareDossierRecord" },
+      "description": "Private 13-section Digital Care Dossier synced per authenticated family steward."
+    },
+    "/users/{userId}/launchKits/{kitId}": {
+      "schema": { "$ref": "#/entities/LaunchKitRecord" },
+      "description": "Private Family Launch Kit checklist, clinic questions, and reference card."
+    },
+    "/consultations/{consultationId}": {
+      "schema": { "$ref": "#/entities/ConsultationRequest" },
+      "description": "Confidential consultation intake records owned by submitting family and reviewable by practice admin."
+    },
+    "/practiceOps/{hubId}": {
+      "schema": { "$ref": "#/entities/PracticeOpsHub" },
+      "description": "Practice operations hub workspace restricted exclusively to verified practice administrators."
+    },
+    "/checkins/{checkinId}": {
+      "schema": { "$ref": "#/entities/ClientCheckIn" },
+      "description": "Dedicated collection for client check-ins owned by creator and accessible to practice administrator."
+    },
+    "/accessPasses/{passHash}": {
+      "schema": { "$ref": "#/entities/AccessPass" },
+      "description": "SHA-256 hashed access passes managed by practice administration with zero PII."
+    }
+  }
+}

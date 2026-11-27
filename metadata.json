@@ -1,0 +1,10 @@
+{
+  "name": "Southern Well Senior Concierge2",
+  "description": "White-glove, non-clinical senior care navigation, clinic accompaniment, and family advocacy across South Mississippi\u0027s Pine Belt and Gulf Coast.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
